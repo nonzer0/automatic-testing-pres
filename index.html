@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js - The HTML Presentation Framework</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Regression Testing Infrastructure</h1>
+					<!--<p>-->
+						<!--<small>Created by Neil West/ <a href="http://twitter.com/nswest23">@johnnycilantro</a></small>-->
+					<!--</p>-->
+				</section>
+
+				<section>
+					<h2>Components</h2>
+          <ul>
+            <li>Selenium/webdriver with python bindings</li>
+            <li>Selenium Grid</li>
+					</ul>
+        </section>
+
+				<section>
+						<h2>What is Selenium/WebDriver?</h2>
+						<p>A collection of language specific bindings to drive a browser</p>
+            <p>Looks like this:</p>
+            <pre><code data-trim contenteditable>
+driver = webdriver.Firefox()
+driver.get("http://www.python.org")
+assert "Python" in driver.title
+elem = driver.find_element_by_name("q")
+elem.send_keys("pycon")
+elem.send_keys(Keys.RETURN)
+assert "No results found." not in driver.page_source
+driver.close()
+            </code></pre>
+				</section>
+
+        <section>
+          <h2>Drivers</h2>
+          <p>All major browsers<p>
+          <ul>
+            <li>Firefox</li>
+            <li>Chrome</li>
+            <li>IE</li>
+            <li>Opera</li>
+            <li>Safari</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Operating Systems</h2>
+          <p>OSX, Linux, Windows</p>
+        </section>
+
+        <section>
+          <h2>Architecture</h2>
+          <ul>
+            <li>AWS</li>
+            <li>CoreOS</li>
+            <li>Docker</li>
+          </ul>
+				</section>
+
+        <section>
+          <h2>CoreOS</h2>
+          <p>linux distribution designed to run linux containers, i.e. docker</p>
+        </section>
+
+        <section>
+          <h2>Selenium + Docker + CoreOS</h2>
+          <p>images for standalone server hub and node configurations</p>
+          <p>docker containers deployed to cluster of CoreOS instances on AWS</p>
+        </section>
+
+        <section>
+          <h2>example user-config</h2>
+          <pre><code data-trim contenteditable>
+- name: selenium-hub.service
+  command: start
+  enable: true
+  content: |
+     [Unit]
+     Description=Selenium Grid Hub
+     After=docker.service
+     Requires=docker.service
+
+     [Service]
+     TimeoutStartSec=0
+     Restart=always
+     ExecStartPre=-/usr/bin/docker kill selenium-hub
+     ExecStartPre=-/usr/bin/docker rm selenium-hub
+     ExecStartPre=/usr/bin/docker pull selenium/hub:2.44.0
+     ExecStart=/usr/bin/docker run --name selenium-hub -p 4444:4444 selenium/hub:2.44.0
+
+     [Install]
+     WantedBy=multi-user.target
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>You mentioned Selenium Grid?</h2>
+						<a href="#" class="selenium-grid">
+							<img data-src="http://cdn.guru99.com/images/AdvanceSelenium/071514_0700_CrossBrowse1.png" alt="grid-diagram">
+						</a>
+        </section>
+
+        <section>
+          <h2>Selenium Grid</h2>
+          <h3>Execute tests by sending http requests</h3>
+          <ul>
+            <li>scale by distributing tests on several machines</li>
+            <li>manage multiple environments from a central point, making it easy to run the tests against a combination of browsers / OS</li>
+          </ul>
+        </section>
+
+				<section>
+					<h2>Putting the pieces together</h2>
+          <h3>Current Architecture</h3>
+					<p>CoreOS images hosted on AWS with docker images for Selenium Hub and Nodes for Firefox and Chrome</p>
+          https://bitbucket.org/lightsidelabs/aws-coreos-selenium-config
+				</section>
+
+				<section>
+					<h2>Continuous Integration</h2>
+					<p>ansible playbooks executed during deployment to QA environment</p>
+				</section>
+
+
+        <section>
+          <h2>CI steps</h2>
+          <ul>
+            <li>save grader related data</li>
+            <li>purge db</li>
+            <li>generate new test data</li>
+            <li>push files with test data records to S3</li>
+            <li>pull latest tests from bitbucket</li>
+            <li>run tests!</li>
+          </ul>
+        </section>
+
+				<section>
+					<h2>What Happened?</h2>
+          Latest
+          <a href="https://s3.amazonaws.com/qa-test-data.revisionassistant.com/latest_results.html">Test Results</a>.
+				</section>
+
+        <section>
+          <h2>ad hoc exection</h2>
+          <p>Chatops</p>
+          <iframe src="https://app.box.com/embed/preview/887f6wwkiovuufxd6ql6o7kw65n2zr65?theme=dark" width="500" height="400" frameborder="0"allowfullscreen webkitallowfullscreen msallowfullscreen></iframe>
+        </section>
+
+				<section>
+          <h2>Aren't UI Tests brittle and difficult to maintain?</h2>
+				</section>
+
+        <section>
+          <h2>Page Object Pattern</h2>
+        </section>
+
+				<section>
+          <h2>a page is an object</h2>
+          <h3>pages contain the following types of things</h3>
+          <ul>
+            <li>actions implemented as methods</li>
+            <li>web elements</li>
+          </ul>
+				</section>
+
+				<section>
+          <h2>Landing Page Object</h2>
+					<pre><code data-trim contenteditable>
+class LandingPage(BasePageObject):
+
+    def __init__(self, driver):
+        self.driver = driver
+
+    welcome_back_msg = WelcomeBack()
+
+    def click_login_link(self):
+        element = self.driver.find_element_by_xpath(locators['landing_page.login_link'])
+        element.click()
+
+    def welcome_back_msg(self):
+        return self.driver.find_element_by_xpath(locators['landing_page.welcome']).text
+					</code></pre>
+				</section>
+
+        <section>
+          <h2>Dictionaries are nice</h2>
+          put all locators in <code>__init__.py</code> so that you have them.
+        </section>
+
+        <section>
+          <h2>Landing Page Locators</h2>
+          <pre><code data-trim contendeditable>
+locators['login.button']             = '//*[@id="ng-app"]/body/div[2]/form/div[4]/div/button'
+locators['login.password']           = '//*[@id="ng-app"]/body/div[2]/form/div[3]/div/div/input'
+locators['login.username']           = '//*[@id="ng-app"]/body/div[2]/form/div[3]/div/input'
+locators['navigator.button']         = '//*[@id="login-header"]/header/div/div/div[1]/button'
+locators['navigator.logout']         = '//*[@id="flyout-navigation"]/div[3]/div/div'
+locators['landing_page.login_link']  = '//*[@id="login-header"]/header/div/div/div[2]/a'
+locators['landing_page.welcome']     = '//*[@id="ng-app"]/body/div[2]/form/div[2]/div'
+locators['landing_page.title_link']  = '//*[@id="login-header"]/header/div/div/div[1]/a'
+locators['landing_page.slogan']      = '//*[@id="ng-app"]/body/div[2]/div/div[2]/div'
+locators['homepage.add_class']       = '//*[@id="content-main"]/div/div[2]/div/div/h3'
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>repo</h2>
+          https://bitbucket.org/lightsidelabs/revision_assistant_e2e_tests
+        </section>
+
+        <section>
+          <h2>Roadmap</h2>
+          <h3>What I'm working on</h3>
+          <ul>
+            <li>spinning up test environments on demand</li>
+            <li>rerun failed tests automatically</li>
+            <li>test api for creating test data</li>
+            <li>parallelize test execution</li>
+          </ul>
+        </section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
