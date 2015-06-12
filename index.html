@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>reveal.js - The HTML Presentation Framework</title>
+		<title>Containerized Test Infrastructure - Neil West</title>
 
 		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
 		<meta name="author" content="Hakim El Hattab">
@@ -15,7 +15,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+		<link rel="stylesheet" href="css/theme/solarized.css" id="theme">
 
 		<!-- Code syntax highlighting -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -42,13 +42,25 @@
 			<div class="slides">
 				<section>
 					<h1>Regression Testing Infrastructure</h1>
+          <p>Containerizing Your E2E Test Platform</p>
 					<!--<p>-->
 						<!--<small>Created by Neil West/ <a href="http://twitter.com/nswest23">@johnnycilantro</a></small>-->
 					<!--</p>-->
 				</section>
 
+        <section>
+          <h2>Topics</h2>
+          <ol>
+            <li>selenium (briefly) </li>
+            <li>containers on coreOS</li>
+            <li>integrating into CI with Ansible</li>
+            <li>chatops</li>
+            <li>page object pattern</li>
+          </ol>
+        </section>
+
 				<section>
-					<h2>Components</h2>
+					<h2>Testing Components</h2>
           <ul>
             <li>Selenium/webdriver with python bindings</li>
             <li>Selenium Grid</li>
@@ -91,19 +103,73 @@ driver.close()
         <section>
           <h2>Architecture</h2>
           <ul>
-            <li>AWS</li>
-            <li>CoreOS</li>
             <li>Docker</li>
+            <li>CoreOS</li>
+            <li>AWS</li>
           </ul>
 				</section>
 
         <section>
-          <h2>CoreOS</h2>
-          <p>linux distribution designed to run linux containers, i.e. docker</p>
+          <h2>lxc</h2>
+          <p>OS-level virtualization</p>
+            <aside class="notes">
+              uses a virtual environment with its own process and network space, instead of creating a full fledged vm.
+              also useful for moving services from multiple hosts onto one server.
+            </aside>
         </section>
 
         <section>
-          <h2>Selenium + Docker + CoreOS</h2>
+          <h2>docker</h2>
+          <p>user-friendly interface for linux containers</p>
+          <p>docker hub</p>
+            <aside class="notes">
+              makes it easy to build, ship, run distributed linux containers. docker hub - cloud service for sharing these applications.
+            </aside>
+        </section>
+
+        <section>
+          <h2>dockerfile</h2>
+            <pre><code data-trim contenteditable>
+FROM ubuntu:14.04
+MAINTAINER Selenium selenium-developers@googlegroups.com
+
+#================================================
+# Customize sources for apt-get
+#================================================
+RUN  echo "deb http://archive.ubuntu.com/ubuntu trusty main universe\n" > /etc/apt/sources.list \
+  && echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main universe\n" >> /etc/apt/sources.list
+
+  ...
+
+#==========
+# Selenium
+#==========
+RUN  mkdir -p /opt/selenium \
+  && wget --no-verbose http://selenium-release.storage.googleapis.com/2.46/selenium-server-standalone-2.46.0.jar -O /opt/selenium/selenium-server-standalone.jar
+            </code></pre>
+        </section>
+
+        <section>
+          <h2>docker hub - selenium HQ</h2>
+          <p>selenium team has set of docker images</p>
+          https://registry.hub.docker.com/repos/selenium/
+        </section>
+
+        <section>
+          <h2>Core OS</h2>
+          <p>linux distribution designed to run linux containers, i.e. docker</p>
+          <ul>
+            <li>fleet</li>
+            <li>etcd</li>
+            <li>systemd</li>
+          </ul>
+            <aside class="notes">
+              since we're using containers and don't need package managers etc, lets use a light-weight os to manage services at higher level of abstraction
+            </aside>
+        </section>
+
+        <section>
+          <h2>Selenium + Docker + Core OS</h2>
           <p>images for standalone server hub and node configurations</p>
           <p>docker containers deployed to cluster of CoreOS instances on AWS</p>
         </section>
@@ -150,17 +216,28 @@ driver.close()
         </section>
 
 				<section>
-					<h2>Putting the pieces together</h2>
-          <h3>Current Architecture</h3>
-					<p>CoreOS images hosted on AWS with docker images for Selenium Hub and Nodes for Firefox and Chrome</p>
-          https://bitbucket.org/lightsidelabs/aws-coreos-selenium-config
-				</section>
-
-				<section>
 					<h2>Continuous Integration</h2>
 					<p>ansible playbooks executed during deployment to QA environment</p>
-				</section>
+          <pre><code data-trim contenteditable>
+  - hosts: '{{ target }}'
+  user: ubuntu
+  sudo: False
 
+  vars:
+      test_suite_dir: cheetos
+
+  tasks:
+
+    - name: download jq binary
+      get_url:
+        url=http://stedolan.github.io/jq/download/linux64/jq
+        dest=/usr/bin/
+        mode=0777
+          </code></pre>
+            <aside class="notes">
+              ansible is conf. mgt software that manages nodes over ssh using a json protocol.  agentless so unlike chef there is no agent that must be instaled on every host.  has very easy to read language based on YAML.
+            </aside>
+				</section>
 
         <section>
           <h2>CI steps</h2>
@@ -174,14 +251,8 @@ driver.close()
           </ul>
         </section>
 
-				<section>
-					<h2>What Happened?</h2>
-          Latest
-          <a href="https://s3.amazonaws.com/qa-test-data.revisionassistant.com/latest_results.html">Test Results</a>.
-				</section>
-
         <section>
-          <h2>ad hoc exection</h2>
+          <h2>ad hoc execution</h2>
           <p>Chatops</p>
           <iframe src="https://app.box.com/embed/preview/887f6wwkiovuufxd6ql6o7kw65n2zr65?theme=dark" width="500" height="400" frameborder="0"allowfullscreen webkitallowfullscreen msallowfullscreen></iframe>
         </section>
@@ -244,19 +315,23 @@ locators['homepage.add_class']       = '//*[@id="content-main"]/div/div[2]/div/d
         </section>
 
         <section>
-          <h2>repo</h2>
-          https://bitbucket.org/lightsidelabs/revision_assistant_e2e_tests
-        </section>
-
-        <section>
           <h2>Roadmap</h2>
-          <h3>What I'm working on</h3>
+          <h3>Other things we are working on</h3>
           <ul>
             <li>spinning up test environments on demand</li>
             <li>rerun failed tests automatically</li>
             <li>test api for creating test data</li>
-            <li>parallelize test execution</li>
           </ul>
+        </section>
+
+        <section>
+          <h2>we're hiring qa people!</h2>
+          http://turnitin.com/en_us/about-us/careers
+        </section>
+
+        <section>
+          <h2>thanks!</h2>
+          @nswest23
         </section>
 			</div>
 
