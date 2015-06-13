@@ -63,6 +63,13 @@
           <ul>
             <li>Selenium/webdriver with python bindings</li>
             <li>Selenium Grid</li>
+            <aside class="notes">
+              selenium - framework for testing web applications by simulating
+              user interactions w/browser.
+              <br>
+              Grid - run tests in parallel on multiple machines with multiple
+              configurations of os/browser.
+            </aside>
 					</ul>
         </section>
 
@@ -100,6 +107,22 @@ driver.close()
         </section>
 
         <section>
+          <h2>Selenium Grid?</h2>
+						<a href="#" class="selenium-grid">
+							<img data-src="http://cdn.guru99.com/images/AdvanceSelenium/071514_0700_CrossBrowse1.png" alt="grid-diagram">
+						</a>
+        </section>
+
+        <section>
+          <h2>Selenium Grid</h2>
+          <h3>Execute tests by sending http requests</h3>
+          <ul>
+            <li>scale by distributing tests on several machines</li>
+            <li>manage multiple environments from a central point</li>
+            <li>easy to run the tests against a combination of browsers / OS</li>
+          </ul>
+        </section>
+        <section>
           <h2>Architecture</h2>
           <ul>
             <li>Docker</li>
@@ -112,7 +135,9 @@ driver.close()
           <h2>lxc</h2>
           <p>OS-level virtualization</p>
             <aside class="notes">
-              uses a virtual environment with its own process and network space, instead of creating a full fledged vm.
+              uses a virtual environment with its own process and network space,
+              instead of creating a full fledged vm.<br>
+              Close to VM w/o having to simulate kernel and hardware.
               also useful for moving services from multiple hosts onto one server.
             </aside>
         </section>
@@ -152,6 +177,11 @@ RUN  mkdir -p /opt/selenium \
           <h2>docker hub - selenium HQ</h2>
           <p>selenium team has set of docker images</p>
           https://registry.hub.docker.com/repos/selenium/
+          <aside class="notes">
+            containers for grid, chrome, firefox, debugging specific
+            <br>
+            kept up to date - right now on selenium 2.46 - latest version
+          </aside>
         </section>
 
         <section>
@@ -163,7 +193,13 @@ RUN  mkdir -p /opt/selenium \
             <li>systemd</li>
           </ul>
             <aside class="notes">
-              since we're using containers and don't need package managers etc, lets use a light-weight os to manage services at higher level of abstraction
+              since we're using containers and don't need package managers etc,
+              lets use a light-weight os to manage services at higher level of abstraction
+              <br>
+              specifically designed for distributed systems.  @turnitin we have small
+              cluster - 3 instances.
+              <br>
+              containers also boot extremely fast so you're up and running in no time.
             </aside>
         </section>
 
@@ -196,23 +232,11 @@ RUN  mkdir -p /opt/selenium \
      [Install]
      WantedBy=multi-user.target
           </code></pre>
+          <aside class="notes">
+            this uses systemd to run containers and link to one another.
+          </aside>
         </section>
 
-        <section>
-          <h2>You mentioned Selenium Grid?</h2>
-						<a href="#" class="selenium-grid">
-							<img data-src="http://cdn.guru99.com/images/AdvanceSelenium/071514_0700_CrossBrowse1.png" alt="grid-diagram">
-						</a>
-        </section>
-
-        <section>
-          <h2>Selenium Grid</h2>
-          <h3>Execute tests by sending http requests</h3>
-          <ul>
-            <li>scale by distributing tests on several machines</li>
-            <li>manage multiple environments from a central point, making it easy to run the tests against a combination of browsers / OS</li>
-          </ul>
-        </section>
 
 				<section>
 					<h2>Continuous Integration</h2>
@@ -318,7 +342,6 @@ locators['homepage.add_class']       = '//*[@id="content-main"]/div/div[2]/div/d
           <h3>Other things we are working on</h3>
           <ul>
             <li>spinning up test environments on demand</li>
-            <li>rerun failed tests automatically</li>
             <li>test api for creating test data</li>
           </ul>
         </section>
